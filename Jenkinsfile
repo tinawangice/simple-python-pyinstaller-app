@@ -1,29 +1,22 @@
 pipeline {
-    agent none
+    agent {
+        docker {
+            image 'node:6-alpine'
+            args '-p 3000:3000 -p 5000:5000' 
+        }
+    }
+    environment {
+        CI = 'true'
+    }
     stages {
         stage('Build') {
-            agent {
-                docker {
-                    image 'python:2-alpine'
-                }
-            }
             steps {
-                sh 'python -m py_compile sources/add2vals.py sources/calc.py'
+                sh 'npm install'
             }
         }
-        stage('Test') { 
-            agent {
-                docker {
-                    image 'qnib/pytest' 
-                }
-            }
+        stage('Test') {
             steps {
-                sh 'py.test --verbose --junit-xml test-reports/results.xml sources/test_calc.py' 
-            }
-            post {
-                always {
-                    junit 'test-reports/results.xml' 
-                }
+                sh './jenkins/scripts/test.sh'
             }
         }
     }
